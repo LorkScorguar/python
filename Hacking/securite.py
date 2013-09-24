@@ -2,6 +2,10 @@ import time
 import re
 import math
 
+#RESSOURCES
+SYMBOLS = """ !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~"""
+LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+nonLettersOrSpacePattern = re.compile('[^A-Z\s]')
 
 def gcd(a, b):
     # Return the GCD of a and b using Euclid's Algorithm
@@ -21,8 +25,8 @@ def findModInverse(a, m):
         v1, v2, v3, u1, u2, u3 = (u1 - q * v1), (u2 - q * v2), (u3 - q * v3), v1, v2, v3
     return u1 % m
 
+#CAESAR CIPHER:key is a number like 0 < key < 25
 def caesar(mode,message,key):
-    LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
     translated = ''
     message = message.upper()
     for symbol in message:
@@ -43,7 +47,6 @@ def caesar(mode,message,key):
 
 
 def caesarBruteForce(message):
-    LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
     rep=""
     bestRep=[]
     max=0
@@ -89,6 +92,7 @@ def caesarBruteForce(message):
             rep=str(bestRep)
     return rep,clef,valide
 
+#TRANSPOSITION CIPHER: key is a number
 def transposition(mode,message,key):
     rep=""
     if mode == "encrypt":
@@ -152,10 +156,7 @@ def transpositionBruteForce(message):
             rep=str(bestRep)
     return rep,clef,valide
 
-
-SYMBOLS = """ !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~"""
-
-
+#AFFINE CIPHER: key is a number > 100
 def getKeyParts(key):
     keyA = key // len(SYMBOLS)
     keyB = key % len(SYMBOLS)
@@ -189,10 +190,72 @@ def affineCipher(mode,message,key):
     return rep
 
 def affineCipherBruteForce(message):
-    return ""
+    valide=False
+    rep=""
+    bestRep=[]
+    max=0
+    clef=0
+    for key in range(len(SYMBOLS) ** 2):
+        find=False
+        keyA = getKeyParts(key)[0]
+        if gcd(keyA, len(SYMBOLS)) != 1:
+            continue
+        decryptedText = affineCipher("decrypt",message, key)
+        translated=decryptedText.lower().strip()
+        translated=re.sub("\W"," ",translated)
+        translated=re.sub("\s+"," ",translated)
+        if re.search("[a-z]{2}",translated):# si pas plus de 2lettres alors il n'y a pas de mots donc ça ne doit pas être bon
+            lmot=translated.split(" ")
+            for mot in lmot:
+                dico=open("dico-fr.txt","r")
+                for mo in dico:
+                    if mot.strip()==mo.strip():
+                        find=find+1
+                        break
+                dico.close()
+            if find > max:
+                max=find
+                clef=key
+                bestRep=[translated]
+            elif find >=max:
+                max=find
+                bestRep.append(translated)
+            if find==len(lmot):
+                rep=translated
+                clef=key
+                valide=True
+                break
+            else:
+                valide=False
+                rep=str(bestRep)
+    return rep,clef,valide
 
+
+#FREQUENCY ANALYSIS
+letterFreq={'e':14.72, 's':7.95, 'a':7.63, 'i':7.53,'t':7.24,'n':7.1,'r':6.55,'u':6.31,'l':5.46,'o':5.38,'d':3.67,'c':3.26,'p':3.02,'m':2.97,'é':1.90,'v':1.63,'q':1.36,'f':1.07,'b':0.90,'g':0.87,'h':0.74,'j':0.55,'à':0.49,'x':0.39,'y':0.31,'è':0.27,'ê':0.23,'z':0.14,'w':0.11,'ç':0.09,'ù':0.06,'k':0.05,'î':0.04,'œ':0.02,'ï':0.01,'ë':0}
+lforder="esaitnrulodcpmévqfbghjàxyèêzwçùkîœïë"
+import operator
+
+def analyseFreq(message):
+    rep=""
+    lettreCount = {'A': 0, 'B': 0, 'C': 0, 'D': 0, 'E': 0, 'F': 0, 'G': 0, 'H': 0, 'I': 0, 'J': 0, 'K': 0, 'L': 0, 'M': 0, 'N': 0, 'O': 0, 'P': 0, 'Q': 0, 'R': 0, 'S': 0, 'T': 0, 'U': 0, 'V': 0, 'W': 0, 'X': 0, 'Y': 0, 'Z': 0}
+    for lettre in message:
+        if lettre.upper() in LETTERS:
+            lettreCount[lettre.upper()] += 1
+    lettreCountSort=sorted(lettreCount, key=lettreCount.get, reverse=True)
+    print(lettreCountSort)
+    for lettre in message:
+        if lettre.upper() in LETTERS:
+            it=lettreCountSort.index(lettre.upper())
+            rep+=lforder[it]
+        else:
+            rep+=lettre
+    return rep
+
+#OTHER FUNCTIONS
 def estimeTemps(algo,message):
     temps=0
+    unite="sec"
     message=message.lower().strip()
     message=re.sub("\W"," ",message)
     message=re.sub("\s+"," ",message)
@@ -203,13 +266,13 @@ def estimeTemps(algo,message):
         temps=len(lmot)*2
     elif algo=="affineCipher":
         temps=0
-    return temps
+    return temps,unite
 
 def testHack(message):
     listeAlgo=["caesar","transposition","affineCipher"]
     for algo in listeAlgo:
-        temps=estimeTemps(algo,cache)
-        print("Temps estimé pour test avec "+algo+":"+str(temps)+"sec")
+        temps,unite=estimeTemps(algo,cache)
+        print("Temps estimé pour test avec "+algo+":"+str(temps)+unite)
         depart=time.clock()
         fct=algo+"BruteForce(cache)"
         hack,key,valide=eval(fct)
@@ -221,6 +284,7 @@ def testHack(message):
             continue
     print("\n========================\nPar brute force("+str(math.floor(fin-depart))+"sec):"+hack+"\nen utilisant "+algo+" avec la clef: "+str(key)+"\n========================\n")
     
-message="comment ça va"
-#cache=caesar("encrypt",message,3)
+message=""
+#cache=transposition("encrypt",message,10)
 #testHack(cache)
+
