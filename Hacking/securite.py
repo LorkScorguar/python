@@ -1,8 +1,9 @@
-import time
-import re
+import base64
 import math
+import re
+import time
 
-#RESSOURCES
+#RESOURCES
 SYMBOLS = """ !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~"""
 LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 nonLettersOrSpacePattern = re.compile('[^A-Z\s]')
@@ -112,7 +113,7 @@ def transposition(mode,message,key):
         row=0
         for symbol in message:
             plaintext[col] += symbol
-            col += 1 
+            col += 1
             if (col == numOfColumns) or (col == numOfColumns - 1 and row >=numOfRows - numOfShadedBoxes):
                 col = 0
                 row += 1
@@ -184,7 +185,7 @@ def affineCipher(mode,message,key):
             if mode=="encrypt":
                 rep += SYMBOLS[(symIndex * keyA + keyB) % len(SYMBOLS)]
             else:
-                rep += SYMBOLS[(symIndex - keyB) * modInverseOfKeyA % len(SYMBOLS)] 
+                rep += SYMBOLS[(symIndex - keyB) * modInverseOfKeyA % len(SYMBOLS)]
         else:
             rep += symbol # just append this symbol unencrypted
     return rep
@@ -229,6 +230,23 @@ def affineCipherBruteForce(message):
                 valide=False
                 rep=str(bestRep)
     return rep,clef,valide
+
+#Vigenere
+def vigenere(text,key,operation):
+    #1=crypt 2=decrypt
+    sortie, i = "", 0
+    for caract in text:
+        if operation == 1:    #crypt
+            sortie = sortie + chr((ord(caract) + ord(key[i])) % 256)
+            i = i + 1
+            if i > len(key) - 1:
+                i = 0
+        elif operation == 2:  #decrypt
+            sortie = sortie + chr((ord(caract) - ord(key[i])) % 256)
+            i = i + 1
+            if i > len(key) - 1:
+                i = 0
+    return sortie
 
 
 #FREQUENCY ANALYSIS
@@ -283,8 +301,7 @@ def testHack(message):
             print("Echec avec "+algo+" en "+str(math.floor(fin-depart))+"sec")
             continue
     print("\n========================\nPar brute force("+str(math.floor(fin-depart))+"sec):"+hack+"\nen utilisant "+algo+" avec la clef: "+str(key)+"\n========================\n")
-    
-message=""
+
+#message=""
 #cache=transposition("encrypt",message,10)
 #testHack(cache)
-
