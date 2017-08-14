@@ -26,6 +26,20 @@ def findModInverse(a, m):
         v1, v2, v3, u1, u2, u3 = (u1 - q * v1), (u2 - q * v2), (u3 - q * v3), v1, v2, v3
     return u1 % m
 
+def genPrimes(n):
+    """Generates all primes less than n."""
+    if n <= 2: return
+    yield 2
+    F = [True] * n
+    seq1 = range(3, int(math.sqrt(n)) + 1, 2)
+    seq2 = range(seq1[-1] + 2, n, 2)
+    for p in filter(F.__getitem__, seq1):
+        yield p
+        for q in range(p * p, n, 2 * p):
+            F[q] = False
+    for p in filter(F.__getitem__, seq2):
+        yield p
+            
 #CAESAR CIPHER:key is a number like 0 < key < 25
 def caesar(mode,message,key):
     translated = ''
@@ -53,6 +67,7 @@ def caesarBruteForce(message):
     max=0
     clef=0
     valide=False
+    mlen=len(message.split(" "))
     for key in range(len(LETTERS)):
         find=0
         translated = ''
@@ -80,10 +95,15 @@ def caesarBruteForce(message):
             max=find
             clef=key
             bestRep=[translated]
-        elif find >=max:
+        elif find >= max:
             max=find
             bestRep.append(translated)
         if find==len(lmot):
+            rep=translated
+            clef=key
+            valide=True
+            break
+        elif find==mlen:#count words number using only space separator
             rep=translated
             clef=key
             valide=True
@@ -126,6 +146,7 @@ def transpositionBruteForce(message):
     bestRep=[]
     max=0
     clef=0
+    mlen=len(message.split(" "))
     for key in range(1, len(message)):
         find=False
         translated = transposition("decrypt",message,key)
@@ -152,12 +173,17 @@ def transpositionBruteForce(message):
             clef=key
             valide=True
             break
+        elif find==mlen:#count words number using only space separator
+            rep=translated
+            clef=key
+            valide=True
+            break
         else:
             valide=False
             rep=str(bestRep)
     return rep,clef,valide
 
-#AFFINE CIPHER: key is a number > 100
+#AFFINE CIPHER: key is a number > len(SYMBOLS), not X x len(SYMBOLS)
 def getKeyParts(key):
     keyA = key // len(SYMBOLS)
     keyB = key % len(SYMBOLS)
@@ -196,7 +222,9 @@ def affineCipherBruteForce(message):
     bestRep=[]
     max=0
     clef=0
+    mlen=len(message.split(" "))
     for key in range(len(SYMBOLS) ** 2):
+        print(key)
         find=False
         keyA = getKeyParts(key)[0]
         if gcd(keyA, len(SYMBOLS)) != 1:
@@ -222,6 +250,11 @@ def affineCipherBruteForce(message):
                 max=find
                 bestRep.append(translated)
             if find==len(lmot):
+                rep=translated
+                clef=key
+                valide=True
+                break
+            elif find==mlen:#count words number using only space separator
                 rep=translated
                 clef=key
                 valide=True
@@ -279,11 +312,15 @@ def estimeTemps(algo,message):
     message=re.sub("\s+"," ",message)
     lmot=message.split(" ")
     if algo=="caesar":
-        temps=len(lmot)*2.5
+        temps=len(lmot)*3
     elif algo=="transposition":
-        temps=len(lmot)*2
+        temps=len(lmot)*2.5
     elif algo=="affineCipher":
         temps=0
+        pos=0
+        for numb in genPrimes(len(SYMBOLS)):
+            pos+=1
+        temps=pos*len(SYMBOLS)
     return temps,unite
 
 def testHack(message):
@@ -302,6 +339,7 @@ def testHack(message):
             continue
     print("\n========================\nPar brute force("+str(math.floor(fin-depart))+"sec):"+hack+"\nen utilisant "+algo+" avec la clef: "+str(key)+"\n========================\n")
 
-#message=""
-#cache=transposition("encrypt",message,10)
-#testHack(cache)
+message="salut, c'est florent"
+cache=affineCipher("encrypt",message,778)
+print(cache)
+testHack(cache)
