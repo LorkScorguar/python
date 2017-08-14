@@ -5,7 +5,7 @@ import time
 
 #RESOURCES
 SYMBOLS = """ !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~"""
-LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+LETTERS = 'abcdefghijklmnopqrstuvwxyz'
 nonLettersOrSpacePattern = re.compile('[^A-Z\s]')
 
 def gcd(a, b):
@@ -43,7 +43,7 @@ def genPrimes(n):
 #CAESAR CIPHER:key is a number like 0 < key < 25
 def caesar(mode,message,key):
     translated = ''
-    message = message.upper()
+    message = message.lower()
     for symbol in message:
         if symbol in LETTERS:
             num = LETTERS.find(symbol) # get the number of the symbol
@@ -71,7 +71,9 @@ def caesarBruteForce(message,langue):
     for key in range(len(LETTERS)):
         find=0
         translated = ''
-        for symbol in message.upper():
+        dic="dico-"+langue+".txt"
+        dico=open(dic,"r")
+        for symbol in message.lower():
             if symbol in LETTERS:
                 num = LETTERS.find(symbol) # get the number of the symbol
                 num = num - key
@@ -85,13 +87,10 @@ def caesarBruteForce(message,langue):
         translated=re.sub("\s+"," ",translated)
         lmot=translated.split(" ")
         for mot in lmot:
-            dic="dico-"+langue+".txt"
-            dico=open(dic,"r")
             for mo in dico:
                 if mot.strip()==mo.strip():
                     find=find+1
                     break
-            dico.close()
         if find > max:
             max=find
             clef=key
@@ -112,6 +111,7 @@ def caesarBruteForce(message,langue):
         else:
             valide=False
             rep=str(bestRep)
+        dico.close()
     return rep,clef,valide
 
 #TRANSPOSITION CIPHER: key is a number
@@ -149,6 +149,8 @@ def transpositionBruteForce(message,langue):
     clef=0
     mlen=len(message.split(" "))
     for key in range(1, len(message)):
+        dic="dico-"+langue+".txt"
+        dico=open(dic,"r")
         find=False
         translated = transposition("decrypt",message,key)
         translated=translated.lower().strip()
@@ -156,13 +158,10 @@ def transpositionBruteForce(message,langue):
         translated=re.sub("\s+"," ",translated)
         lmot=translated.split(" ")
         for mot in lmot:
-            dic="dico-"+langue+".txt"
-            dico=open(dic,"r")
             for mo in dico:
                 if mot.strip()==mo.strip():
                     find=find+1
                     break
-            dico.close()
         if find > max:
             max=find
             clef=key
@@ -183,6 +182,7 @@ def transpositionBruteForce(message,langue):
         else:
             valide=False
             rep=str(bestRep)
+        dico.close()
     return rep,clef,valide
 
 #AFFINE CIPHER: key is a number > len(SYMBOLS), not X x len(SYMBOLS)
@@ -226,8 +226,9 @@ def affineCipherBruteForce(message,langue):
     clef=0
     mlen=len(message.split(" "))
     for key in range(len(SYMBOLS) ** 2):
-        print(key)
         find=False
+        dic="dico-"+langue+".txt"
+        dico=open(dic,"r")
         keyA = getKeyParts(key)[0]
         if gcd(keyA, len(SYMBOLS)) != 1:
             continue
@@ -238,13 +239,10 @@ def affineCipherBruteForce(message,langue):
         if re.search("[a-z]{2}",translated):# si pas plus de 2lettres alors il n'y a pas de mots donc ça ne doit pas être bon
             lmot=translated.split(" ")
             for mot in lmot:
-                dic="dico-"+langue+".txt"
-                dico=open(dic,"r")
                 for mo in dico:
                     if mot.strip()==mo.strip():
                         find=find+1
                         break
-                dico.close()
             if find > max:
                 max=find
                 clef=key
@@ -257,7 +255,7 @@ def affineCipherBruteForce(message,langue):
                 clef=key
                 valide=True
                 break
-            elif find==mlen:#count words number using only space separator
+            elif find==mlen and mlen==len(translated.split(" ")):#count words number using only space separator
                 rep=translated
                 clef=key
                 valide=True
@@ -265,6 +263,7 @@ def affineCipherBruteForce(message,langue):
             else:
                 valide=False
                 rep=str(bestRep)
+        dico.close()
     return rep,clef,valide
 
 #Vigenere
@@ -294,15 +293,16 @@ def analyseFreq(message,langue):
     rep=""
     lettreCount = {}
     for lettre in message:
-        if lettre.upper() in lettreCount:
-            lettreCount[lettre.upper()] += 1
-        else:
-            lettreCount[lettre.upper()] = 0
+        if lettre in LETTERS:
+            if lettre.lower() in lettreCount:
+                lettreCount[lettre.lower()] += 1
+            else:
+                lettreCount[lettre.lower()] = 0
     lettreCountSort=sorted(lettreCount, key=lettreCount.get, reverse=True)
     #print(lettreCountSort)#letter frequency in message
     for lettre in message:
-        if lettre.upper() in LETTERS:
-            it=lettreCountSort.index(lettre.upper())
+        if lettre.lower() in LETTERS:
+            it=lettreCountSort.index(lettre.lower())
             rep+=lforder[langue][it]
         else:
             rep+=lettre
@@ -345,8 +345,7 @@ def testHack(message,langue='fr'):
     print("\n========================\nPar brute force("+str(math.floor(fin-depart))+"sec):"+hack+"\nen utilisant "+algo+" avec la clef: "+str(key)+"\n========================\n")
 
 
-message="test"
-cache=caesar("encrypt",message,5)
+message="""remplacer"""
+cache=caesar("encrypt",message,3)
 print(cache)
-r=analyseFreq(cache,'fr')
-print(r)
+testHack(cache)
