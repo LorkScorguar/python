@@ -287,7 +287,8 @@ def vigenere(text,key,operation):
 
 #FREQUENCY ANALYSIS
 letterFreq={'e':14.72, 's':7.95, 'a':7.63, 'i':7.53,'t':7.24,'n':7.1,'r':6.55,'u':6.31,'l':5.46,'o':5.38,'d':3.67,'c':3.26,'p':3.02,'m':2.97,'é':1.90,'v':1.63,'q':1.36,'f':1.07,'b':0.90,'g':0.87,'h':0.74,'j':0.55,'à':0.49,'x':0.39,'y':0.31,'è':0.27,'ê':0.23,'z':0.14,'w':0.11,'ç':0.09,'ù':0.06,'k':0.05,'î':0.04,'œ':0.02,'ï':0.01,'ë':0}
-lforder={"fr":"esaitnrulodcpmévqfbghjàxyèêzwçùkîœïë"}
+lforder={"fr":"esaitnruoldcmpvéqfbghjàxzèêyçwûùâkîôœëï",
+         "en":"etaoinshrdlcumwfgypbvkjxqz"}
 import operator
 
 def analyseFreq(message,langue):
