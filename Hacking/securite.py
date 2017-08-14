@@ -39,7 +39,7 @@ def genPrimes(n):
             F[q] = False
     for p in filter(F.__getitem__, seq2):
         yield p
-            
+
 #CAESAR CIPHER:key is a number like 0 < key < 25
 def caesar(mode,message,key):
     translated = ''
@@ -61,7 +61,7 @@ def caesar(mode,message,key):
     return translated.lower()
 
 
-def caesarBruteForce(message):
+def caesarBruteForce(message,langue):
     rep=""
     bestRep=[]
     max=0
@@ -85,7 +85,8 @@ def caesarBruteForce(message):
         translated=re.sub("\s+"," ",translated)
         lmot=translated.split(" ")
         for mot in lmot:
-            dico=open("dico-fr.txt","r")
+            dic="dico-"+langue+".txt"
+            dico=open(dic,"r")
             for mo in dico:
                 if mot.strip()==mo.strip():
                     find=find+1
@@ -140,7 +141,7 @@ def transposition(mode,message,key):
         rep=''.join(plaintext)
     return rep
 
-def transpositionBruteForce(message):
+def transpositionBruteForce(message,langue):
     valide=False
     rep=""
     bestRep=[]
@@ -155,7 +156,8 @@ def transpositionBruteForce(message):
         translated=re.sub("\s+"," ",translated)
         lmot=translated.split(" ")
         for mot in lmot:
-            dico=open("dico-fr.txt","r")
+            dic="dico-"+langue+".txt"
+            dico=open(dic,"r")
             for mo in dico:
                 if mot.strip()==mo.strip():
                     find=find+1
@@ -216,7 +218,7 @@ def affineCipher(mode,message,key):
             rep += symbol # just append this symbol unencrypted
     return rep
 
-def affineCipherBruteForce(message):
+def affineCipherBruteForce(message,langue):
     valide=False
     rep=""
     bestRep=[]
@@ -236,7 +238,8 @@ def affineCipherBruteForce(message):
         if re.search("[a-z]{2}",translated):# si pas plus de 2lettres alors il n'y a pas de mots donc ça ne doit pas être bon
             lmot=translated.split(" ")
             for mot in lmot:
-                dico=open("dico-fr.txt","r")
+                dic="dico-"+langue+".txt"
+                dico=open(dic,"r")
                 for mo in dico:
                     if mot.strip()==mo.strip():
                         find=find+1
@@ -284,10 +287,10 @@ def vigenere(text,key,operation):
 
 #FREQUENCY ANALYSIS
 letterFreq={'e':14.72, 's':7.95, 'a':7.63, 'i':7.53,'t':7.24,'n':7.1,'r':6.55,'u':6.31,'l':5.46,'o':5.38,'d':3.67,'c':3.26,'p':3.02,'m':2.97,'é':1.90,'v':1.63,'q':1.36,'f':1.07,'b':0.90,'g':0.87,'h':0.74,'j':0.55,'à':0.49,'x':0.39,'y':0.31,'è':0.27,'ê':0.23,'z':0.14,'w':0.11,'ç':0.09,'ù':0.06,'k':0.05,'î':0.04,'œ':0.02,'ï':0.01,'ë':0}
-lforder="esaitnrulodcpmévqfbghjàxyèêzwçùkîœïë"
+lforder={"fr":"esaitnrulodcpmévqfbghjàxyèêzwçùkîœïë"}
 import operator
 
-def analyseFreq(message):
+def analyseFreq(message,langue):
     rep=""
     lettreCount = {'A': 0, 'B': 0, 'C': 0, 'D': 0, 'E': 0, 'F': 0, 'G': 0, 'H': 0, 'I': 0, 'J': 0, 'K': 0, 'L': 0, 'M': 0, 'N': 0, 'O': 0, 'P': 0, 'Q': 0, 'R': 0, 'S': 0, 'T': 0, 'U': 0, 'V': 0, 'W': 0, 'X': 0, 'Y': 0, 'Z': 0}
     for lettre in message:
@@ -298,7 +301,7 @@ def analyseFreq(message):
     for lettre in message:
         if lettre.upper() in LETTERS:
             it=lettreCountSort.index(lettre.upper())
-            rep+=lforder[it]
+            rep+=lforder[langue][it]
         else:
             rep+=lettre
     return rep
@@ -323,13 +326,13 @@ def estimeTemps(algo,message):
         temps=pos*len(SYMBOLS)
     return temps,unite
 
-def testHack(message):
+def testHack(message,langue='fr'):
     listeAlgo=["caesar","transposition","affineCipher"]
     for algo in listeAlgo:
         temps,unite=estimeTemps(algo,cache)
         print("Temps estimé pour test avec "+algo+":"+str(temps)+unite)
         depart=time.clock()
-        fct=algo+"BruteForce(cache)"
+        fct=algo+"BruteForce(message,langue)"
         hack,key,valide=eval(fct)
         fin=time.clock()
         if valide:
