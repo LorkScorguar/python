@@ -331,7 +331,7 @@ def estimeTemps(algo,message):
 def testHack(message,langue='fr'):
     listeAlgo=["caesar","transposition","affineCipher"]
     for algo in listeAlgo:
-        temps,unite=estimeTemps(algo,cache)
+        temps,unite=estimeTemps(algo,message)
         print("Temps estimé pour test avec "+algo+":"+str(temps)+unite)
         depart=time.clock()
         fct=algo+"BruteForce(message,langue)"
