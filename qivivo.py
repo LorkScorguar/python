@@ -5,6 +5,14 @@ secret_id=<generated secret>
 token=""
 refresh_token=""
 thermostat_id=""
+
+Can:
+- set temperature
+- get temperature
+- get humidity
+- get current program
+- set program
+- check if heating is running
 """
 import json
 import ssl
@@ -28,7 +36,9 @@ def ignoreCertificate():
     return context
 
 def getToken():
-    print(auth_url+"?response_type=code&scope=read_devices read_programmation update_programmation update_thermostat&client_id="+client_id+"&redirect_uri="+redirect_uri)
+    global token
+    global refresh_token
+    print(auth_url+"?response_type=code&scope=read_devices read_programmation update_programmation read_thermostats&client_id="+client_id+"&redirect_uri="+redirect_uri)
     code=input("Enter code:")
     url=access_token_url
     context=ignoreCertificate()
@@ -37,13 +47,25 @@ def getToken():
     resp=urllib.request.urlopen(req,context=context)
     jResp=json.loads(resp.read().decode('utf-8'))
     print(jResp)
+    token=jResp['access_token']
+    refresh_token=jResp['refresh_token']
+
+def refreshToken():
     global token
     global refresh_token
+    url=access_token_url
+    context=ignoreCertificate()
+    req=urllib.request.Request(url+"?grant_type=refresh_token&client_id="+client_id+"&client_secret="+secret_id+"&redirect_uri="+redirect_uri+"&refresh_token="+refresh_token)
+    req.get_method=lambda:'POST'
+    resp=urllib.request.urlopen(req,context=context)
+    jResp=json.loads(resp.read().decode('utf-8'))
+    print(jResp)
     token=jResp['access_token']
     refresh_token=jResp['refresh_token']
 
 
 def getDevices():
+    global thermostat_id
     url = "https://data.qivivo.com/api/v2/devices"
     context=ignoreCertificate()
     req=urllib.request.Request(url)
@@ -54,7 +76,6 @@ def getDevices():
     jResp=json.loads(resp.read().decode('utf-8'))
     for device in jResp['devices']:
         if device['type']=='thermostat':
-            global thermostat_id
             thermostat_id=device['uuid']
     print("Found "+str(len(jResp['devices']))+" devices")
 
@@ -83,4 +104,38 @@ def changeProgram(prog_name):
     req.add_header("content-type", "application/json")
     req.add_header("authorization", "Bearer "+token)
     req.get_method=lambda:'PUT'
+    resp=urllib.request.urlopen(req,context=context)
     getPrograms()
+
+def getTemp():
+    url = "https://data.qivivo.com/api/v2/devices/thermostats/"+thermostat_id+"/temperature"
+    context=ignoreCertificate()
+    req=urllib.request.Request(url)
+    req.add_header("content-type", "application/json")
+    req.add_header("authorization", "Bearer "+token)
+    req.get_method=lambda:'GET'
+    resp=urllib.request.urlopen(req,context=context)
+    jResp=json.loads(resp.read().decode('utf-8'))
+    return jResp['temperature']
+
+def getHumidity():
+    url = "https://data.qivivo.com/api/v2/devices/thermostats/"+thermostat_id+"/humidity"
+    context=ignoreCertificate()
+    req=urllib.request.Request(url)
+    req.add_header("content-type", "application/json")
+    req.add_header("authorization", "Bearer "+token)
+    req.get_method=lambda:'GET'
+    resp=urllib.request.urlopen(req,context=context)
+    jResp=json.loads(resp.read().decode('utf-8'))
+    return jResp['humidity']
+
+#can't work as update_thermostat scope is invalid
+def setTemp(temp,duration):
+    data={"temperature":temp,"duration":duration}
+    url = "https://data.qivivo.com/api/v2/devices/thermostats/"+thermostat_id+"/temperature/temporary-instruction"
+    context=ignoreCertificate()
+    req=urllib.request.Request(url)
+    req.add_header("content-type", "application/json")
+    req.add_header("authorization", "Bearer "+token)
+    req.get_method=lambda:'POST'
+    resp=urllib.request.urlopen(req,json.dumps(data).encode('utf-8'),context=context)
