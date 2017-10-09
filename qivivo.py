@@ -58,7 +58,8 @@ def getDevices():
             thermostat_id=device['uuid']
     print("Found "+str(len(jResp['devices']))+" devices")
 
-def getCurrentProgram():
+def getPrograms():
+    dprog = {}
     url = "https://data.qivivo.com/api/v2/devices/thermostats/"+thermostat_id+"/programs"
     context=ignoreCertificate()
     req=urllib.request.Request(url)
@@ -68,8 +69,18 @@ def getCurrentProgram():
     resp=urllib.request.urlopen(req,context=context)
     jResp=json.loads(resp.read().decode('utf-8'))
     prog_id=jResp['user_active_program_id']
-    print(jResp['user_programs'][prog_id-1]['name'])
+    print("Currently using "+str(jResp['user_programs'][prog_id-1]['name']))
+    for prog in jResp['user_programs']:
+        dprog[prog['name']]=prog['id']
+    return dprog
 
-#getToken()
-getDevices()
-getCurrentProgram()
+
+def changeProgram(prog_name):
+    dprog = getPrograms()
+    url = "https://data.qivivo.com/api/v2/devices/thermostats/"+thermostat_id+"/programs/"+dprog[prog_name]+"/active"
+    context=ignoreCertificate()
+    req=urllib.request.Request(url)
+    req.add_header("content-type", "application/json")
+    req.add_header("authorization", "Bearer "+token)
+    req.get_method=lambda:'PUT'
+    getPrograms()
