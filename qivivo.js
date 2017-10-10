@@ -6,16 +6,18 @@
 
 const https = require('https');
 const http = require('http');
+const parsedJSON = require('./Config.json')
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";//to avoid certificate problem
 
-const token='';
-const thermostat_id="";
+var token=parsedJSON['token'];
+var thermostat_id=parsedJSON['thermostat_id'];
+const proxy=parsedJSON['proxy']
 
 
 function getTemp(){
   var connectReq = http.request({ // establishing a tunnel
-    host: 'proxy.com',
+    host: proxy,
     port: 8000,
     method: 'CONNECT',
     path: 'data.qivivo.com',
