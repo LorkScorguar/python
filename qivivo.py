@@ -157,15 +157,11 @@ def setTemp(temp,duration):
     resp=urllib.request.urlopen(req,json.dumps(data).encode('utf-8'),context=context)
 
 try:
-    ldevices=getDevices()
-    for device in ldevices:
-        if device['type']=='thermostat':
-            t=getTemp(device['uuid'])
-            print(device['uuid']+":"+str(t))
+    _=getDevices()
+    t=getTemp(thermostat_id)
+    print(thermostat_id+":"+str(t))
 except:
     refreshToken()
-    ldevices=getDevices()
-    for device in ldevices:
-        if device['type']=='thermostat':
-            t=getTemp(device['uuid'])
-            print(device['uuid']+":"+str(t))
+    _=getDevices()
+    t=getTemp(thermostat_id)
+    print(thermostat_id+":"+str(t))
