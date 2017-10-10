@@ -38,7 +38,7 @@ def ignoreCertificate():
 def getToken():
     global token
     global refresh_token
-    print(auth_url+"?response_type=code&scope=read_devices read_programmation update_programmation read_thermostats&client_id="+client_id+"&redirect_uri="+redirect_uri)
+    print(auth_url+"?response_type=code&scope=read_devices read_programmation update_programmation read_thermostats read_wireless_modules&client_id="+client_id+"&redirect_uri="+redirect_uri)
     code=input("Enter code:")
     url=access_token_url
     context=ignoreCertificate()
@@ -75,9 +75,10 @@ def getDevices():
     resp=urllib.request.urlopen(req,context=context)
     jResp=json.loads(resp.read().decode('utf-8'))
     for device in jResp['devices']:
-        if device['type']=='thermostat':
-            thermostat_id=device['uuid']
-    print("Found "+str(len(jResp['devices']))+" devices")
+            if device['type']=='thermostat':
+                thermostat_id=device['uuid']
+    return jResp['devices']
+
 
 def getPrograms():
     dprog = {}
@@ -107,8 +108,8 @@ def changeProgram(prog_name):
     resp=urllib.request.urlopen(req,context=context)
     getPrograms()
 
-def getTemp():
-    url = "https://data.qivivo.com/api/v2/devices/thermostats/"+thermostat_id+"/temperature"
+def getTemp(deviceid):
+    url = "https://data.qivivo.com/api/v2/devices/thermostats/"+deviceid+"/temperature"
     context=ignoreCertificate()
     req=urllib.request.Request(url)
     req.add_header("content-type", "application/json")
@@ -118,8 +119,8 @@ def getTemp():
     jResp=json.loads(resp.read().decode('utf-8'))
     return jResp['temperature']
 
-def getHumidity():
-    url = "https://data.qivivo.com/api/v2/devices/thermostats/"+thermostat_id+"/humidity"
+def getHumidity(deviceid):
+    url = "https://data.qivivo.com/api/v2/devices/thermostats/"+deviceid+"/humidity"
     context=ignoreCertificate()
     req=urllib.request.Request(url)
     req.add_header("content-type", "application/json")
@@ -139,3 +140,18 @@ def setTemp(temp,duration):
     req.add_header("authorization", "Bearer "+token)
     req.get_method=lambda:'POST'
     resp=urllib.request.urlopen(req,json.dumps(data).encode('utf-8'),context=context)
+
+
+try:
+    ldevices=getDevices()
+    for device in ldevices:
+        if device['type']=='thermostat':
+            t=getTemp(device['uuid'])
+            print(device['uuid']+":"+str(t))
+except:
+    refreshToken()
+    ldevices=getDevices()
+    for device in ldevices:
+        if device['type']=='thermostat':
+            t=getTemp(device['uuid'])
+            print(device['uuid']+":"+str(t))
