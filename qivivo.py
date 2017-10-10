@@ -28,6 +28,22 @@ token=Config.token
 refresh_token=Config.refresh_token
 thermostat_id=Config.thermostat_id
 
+def updateConfig(param,value):
+    #save configuration
+    save = {}
+    cfg = open("Config.py","r")
+    for line in cfg:
+        parm = line.strip().split("=")[0]
+        val = line.strip().split("=")[1]
+        save[parm] = val
+    cfg.close()
+    #do the change and write file
+    save[param] = '"'+value+'"'
+    cfg = open("Config.py","w")
+    for k,v in save.items():
+        cfg.write(str(k)+"="+str(v)+"\n")
+    cfg.close()
+
 def ignoreCertificate():
     """Function to ignore ssl certificate error"""
     context = ssl.create_default_context()
@@ -62,7 +78,8 @@ def refreshToken():
     print(jResp)
     token=jResp['access_token']
     refresh_token=jResp['refresh_token']
-
+    updateConfig("token",token)
+    updateConfig("refresh_token",refresh_token)
 
 def getDevices():
     global thermostat_id
@@ -79,7 +96,6 @@ def getDevices():
                 thermostat_id=device['uuid']
     return jResp['devices']
 
-
 def getPrograms():
     dprog = {}
     url = "https://data.qivivo.com/api/v2/devices/thermostats/"+thermostat_id+"/programs"
@@ -95,7 +111,6 @@ def getPrograms():
     for prog in jResp['user_programs']:
         dprog[prog['name']]=prog['id']
     return dprog
-
 
 def changeProgram(prog_name):
     dprog = getPrograms()
@@ -140,7 +155,6 @@ def setTemp(temp,duration):
     req.add_header("authorization", "Bearer "+token)
     req.get_method=lambda:'POST'
     resp=urllib.request.urlopen(req,json.dumps(data).encode('utf-8'),context=context)
-
 
 try:
     ldevices=getDevices()
