@@ -15,14 +15,13 @@ var thermostat_id=parsedJSON['thermostat_id'];
 const proxy=parsedJSON['proxy']
 
 
-function getTemp(){
-  var connectReq = http.request({ // establishing a tunnel
+function getTemp(callback){
+  var connectReq = http.request({
     host: proxy,
     port: 8000,
     method: 'CONNECT',
     path: 'data.qivivo.com',
   }).on('connect', function(res, socket, head) {
-    // should check res.statusCode here
     var req = https.get({
       host: 'data.qivivo.com',
       path: '/api/v2/devices/thermostats/'+thermostat_id+'/temperature',
@@ -35,12 +34,16 @@ function getTemp(){
     }, function(res) {
       res.setEncoding('utf8');
       res.on('data', (data) => {
-        jResp = JSON.parse(data)
-        console.log(jResp['temperature']);
+        jResp = JSON.parse(data);
+      });
+      res.on('end', (data) => {
+        callback(jResp['temperature']);
       });
     });
   }).end();
 }
 
 
-getTemp();
+getTemp(function(res){
+  console.log("La température est de "+res)
+});
