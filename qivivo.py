@@ -54,7 +54,7 @@ def ignoreCertificate():
 def getToken():
     global token
     global refresh_token
-    print(auth_url+"?response_type=code&scope=read_devices read_programmation update_programmation read_thermostats read_wireless_modules&client_id="+client_id+"&redirect_uri="+redirect_uri)
+    print(auth_url+"?response_type=code&scope=read_devices read_programmation update_programmation read_thermostats read_wireless_modules read_house_data&client_id="+client_id+"&redirect_uri="+redirect_uri)
     code=input("Enter code:")
     url=access_token_url
     context=ignoreCertificate()
