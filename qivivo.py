@@ -75,7 +75,7 @@ def refreshToken():
     req.get_method=lambda:'POST'
     resp=urllib.request.urlopen(req,context=context)
     jResp=json.loads(resp.read().decode('utf-8'))
-    print(jResp)
+    #print(jResp)
     token=jResp['access_token']
     refresh_token=jResp['refresh_token']
     updateConfig("token",token)
